@@ -1,0 +1,10 @@
+{
+  "name": "render-ansible-runner",
+  "version": "1.0.0",
+  "description": "Run Ansible Playbook on Render",
+  "main": "run-playbook.js",
+  "scripts": {
+    "start": "node run-playbook.js"
+  },
+  "dependencies": {}
+}
