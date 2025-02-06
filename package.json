@@ -4,7 +4,7 @@
   "description": "Run Ansible Playbook on Render",
   "main": "run-playbook.js",
   "scripts": {
-    "start": "node run-playbook.js"
+    "start": "cp ./private_key.pem /etc/ssh/private_key.pem && chmod 600 /etc/ssh/private_key.pem && node run-playbook.js"
   },
   "dependencies": {}
 }
