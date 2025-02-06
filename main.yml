@@ -1,0 +1,91 @@
+---
+- name: Setup High-Performance RDP Server
+  hosts: all
+  become: true
+  vars:
+    rdp_user: "rifat"  # RDP username
+    rdp_password: "rifat"  # Replace with a strong password
+    disk_partition: "/dev/sda"  # Update if using a different disk partition
+  tasks:
+    - name: Update and upgrade the server
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install Xfce4 and xRDP
+      apt:
+        name:
+          - xfce4
+          - xfce4-goodies
+          - xrdp
+        state: present
+
+    - name: Enable and start xRDP service
+      systemd:
+        name: xrdp
+        enabled: yes
+        state: started
+
+    - name: Ensure RDP user exists
+      user:
+        name: "{{ rdp_user }}"
+        password: "{{ rdp_password | password_hash('sha512') }}"
+        state: present
+        groups: sudo
+
+    - name: Set default desktop session for RDP
+      copy:
+        dest: /home/{{ rdp_user }}/.xsession
+        content: |
+          xfce4-session
+      owner: "{{ rdp_user }}"
+      group: "{{ rdp_user }}"
+      mode: '0644'
+
+    - name: Format and mount storage if unformatted
+      filesystem:
+        fstype: ext4
+        dev: "{{ disk_partition }}"
+        opts: "-F"
+        state: present
+
+    - name: Mount additional storage (1TB)
+      mount:
+        path: /mnt/storage
+        src: "{{ disk_partition }}"
+        fstype: ext4
+        state: mounted
+
+    - name: Ensure /mnt/storage is writable
+      file:
+        path: /mnt/storage
+        state: directory
+        owner: "{{ rdp_user }}"
+        group: "{{ rdp_user }}"
+        mode: '0755'
+
+    - name: Allow RDP through the firewall
+      ufw:
+        rule: allow
+        port: 3389
+        proto: tcp
+
+    - name: Reload UFW firewall
+      shell: ufw reload
+
+    - name: Install performance optimization tools
+      apt:
+        name:
+          - htop
+          - speedtest-cli
+        state: present
+
+    - name: Display RDP setup information
+      debug:
+        msg: >
+          RDP setup is complete. Use the following details to connect:
+          - Host: {{ ansible_host }}
+          - Port: 3389
+          - Username: {{ rdp_user }}
+          - Password: {{ rdp_password }}
+          - Additional Storage: /mnt/storage (1TB)
