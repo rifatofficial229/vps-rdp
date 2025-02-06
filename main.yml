@@ -4,28 +4,32 @@
   become: true
   vars:
     rdp_user: "rifat"  # RDP username
-    rdp_password: "rifat"  # Replace with a strong password
+    rdp_password: "Rifat"  # Replace with a strong password
     disk_partition: "/dev/sda"  # Update if using a different disk partition
   tasks:
+    # Step 1: Update and upgrade packages
     - name: Update and upgrade the server
       apt:
         update_cache: yes
         upgrade: dist
 
+    # Step 2: Install the required desktop environment and RDP server
     - name: Install Xfce4 and xRDP
       apt:
-        name:
+        name: 
           - xfce4
           - xfce4-goodies
           - xrdp
         state: present
 
+    # Step 3: Start and enable xRDP service
     - name: Enable and start xRDP service
       systemd:
         name: xrdp
         enabled: yes
         state: started
 
+    # Step 4: Configure a user for RDP login
     - name: Ensure RDP user exists
       user:
         name: "{{ rdp_user }}"
@@ -42,6 +46,7 @@
       group: "{{ rdp_user }}"
       mode: '0644'
 
+    # Step 5: Configure disk storage for optimal performance
     - name: Format and mount storage if unformatted
       filesystem:
         fstype: ext4
@@ -64,6 +69,7 @@
         group: "{{ rdp_user }}"
         mode: '0755'
 
+    # Step 6: Open firewall port for RDP (3389)
     - name: Allow RDP through the firewall
       ufw:
         rule: allow
@@ -73,19 +79,21 @@
     - name: Reload UFW firewall
       shell: ufw reload
 
-    - name: Install performance optimization tools
+    # Step 7: Install performance optimization tools
+    - name: Install htop and speedtest-cli
       apt:
-        name:
+        name: 
           - htop
           - speedtest-cli
         state: present
 
+    # Step 8: Display RDP connection details
     - name: Display RDP setup information
       debug:
         msg: >
-          RDP setup is complete. Use the following details to connect:
-          - Host: {{ ansible_host }}
-          - Port: 3389
-          - Username: {{ rdp_user }}
-          - Password: {{ rdp_password }}
+          RDP setup is complete. Use the following details to connect:  
+          - Host: {{ ansible_host }}  
+          - Port: 3389  
+          - Username: {{ rdp_user }}  
+          - Password: {{ rdp_password }}  
           - Additional Storage: /mnt/storage (1TB)
